@@ -16,6 +16,7 @@ Python utility to combine multiple Moodle rubric exports into a single consolida
 - First argument: directory containing the Moodle XLSX/CSV exports (defaults to current directory if omitted).
 - Second argument: output file path (defaults to `consolidated.xlsx` in the repo root).
 - The script creates a `.venv`, installs dependencies, runs the consolidation, and deactivates the venv when done.
+- If LibreOffice (`soffice`) is on your PATH, a PDF (`<output>.pdf`) is produced in landscape, fitted to one page.
 
 ## Manual usage
 ```bash
@@ -26,6 +27,7 @@ pip install -r requirements.txt
 python consolidate_grades.py --input-dir /path/to/exports --output consolidated.xlsx
 deactivate
 ```
+- A PDF will also be written next to the XLSX when LibreOffice is available.
 
 ## Output layout
 - Top banner: course name + “Assignment Grade Breakdown Per Criteria”.

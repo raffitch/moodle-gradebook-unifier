@@ -2,4 +2,5 @@
 __pycache__/
 *.pyc
 consolidated.xlsx
+consolidated.pdf
 .DS_Store

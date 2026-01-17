@@ -20,6 +20,8 @@ from __future__ import annotations
 
 import argparse
 import re
+import shutil
+import subprocess
 from pathlib import Path
 from typing import Iterable, List, Optional, Tuple
 
@@ -452,7 +454,50 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
 
     autosize()
 
+    # Page setup for PDF export: single page, landscape.
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.page_setup.fitToHeight = 1
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.orientation = "landscape"
+    ws.page_setup.paperSize = ws.PAPERSIZE_A4
+    ws.print_options.horizontalCentered = True
+
     wb.save(output_path)
+    return wb
+
+
+def export_pdf(xlsx_path: Path, pdf_path: Path) -> bool:
+    """Export the XLSX to PDF via LibreOffice/soffice if available."""
+    soffice = shutil.which("soffice") or shutil.which("libreoffice")
+    if not soffice:
+        print(f"Skipping PDF export (LibreOffice/soffice not found). Intended path: {pdf_path}")
+        return False
+
+    pdf_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        subprocess.run(
+            [
+                soffice,
+                "--headless",
+                "--convert-to",
+                "pdf",
+                "--outdir",
+                str(pdf_path.parent),
+                str(xlsx_path),
+            ],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        # LibreOffice names the output based on the input filename.
+        produced = xlsx_path.with_suffix(".pdf")
+        if produced != pdf_path:
+            if produced.exists():
+                produced.replace(pdf_path)
+        return True
+    except subprocess.CalledProcessError:
+        print(f"PDF export failed via LibreOffice for {xlsx_path}")
+        return False
 
 
 def list_assignment_files(base_dir: Path) -> Tuple[Path, List[Path]]:
@@ -496,6 +541,12 @@ def main() -> None:
 
     write_workbook(assignments, roster, course_df, course_name, output_path)
     print(f"Wrote consolidated workbook to {output_path}")
+
+    pdf_path = output_path.with_suffix(".pdf")
+    if export_pdf(output_path, pdf_path):
+        print(f"Wrote PDF to {pdf_path}")
+    else:
+        print("PDF not produced.")
 
 
 if __name__ == "__main__":
