@@ -438,17 +438,17 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
                         header_max_len = max(header_max_len, len(val))
             # Names columns get a wider default cap.
             if col <= 2:
-                min_w, max_w = 16, 50
+                min_w, max_w = 16, 40
             else:
-                min_w, max_w = 10, 45
-            width = max(min_w, int(max_len * 1.1) + 3)
+                min_w, max_w = 6, 24
+            width = max(min_w, max_len + 2)
             width = min(width, max_w)
             ws.column_dimensions[get_column_letter(col)].width = width
 
         # Adjust header and title heights based on text length to avoid clipping rotated text.
-        ws.row_dimensions[header_row].height = max(70, header_max_len * 3)
-        ws.row_dimensions[group_row].height = max(ws.row_dimensions[group_row].height or 0, 26)
-        ws.row_dimensions[title_row].height = max(ws.row_dimensions[title_row].height or 0, min(120, 24 + title_len * 0.8))
+        ws.row_dimensions[header_row].height = max(45, min(90, header_max_len * 1.3))
+        ws.row_dimensions[group_row].height = max(ws.row_dimensions[group_row].height or 0, 24)
+        ws.row_dimensions[title_row].height = max(ws.row_dimensions[title_row].height or 0, 32)
 
     # Add thick vertical separators between sections.
     def add_thick_vertical(col_idx: int):
