@@ -353,8 +353,8 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
     # Names block
     ws.merge_cells(start_row=group_row, start_column=1, end_row=group_row, end_column=2)
     set_cell(ws.cell(row=group_row, column=1), "Students", align=group_alignment, fill=group_fill, bold=True)
-    set_cell(ws.cell(row=header_row, column=1), "First name", align=header_alignment, fill=header_fill, bold=True)
-    set_cell(ws.cell(row=header_row, column=2), "Last name", align=header_alignment, fill=header_fill, bold=True)
+    set_cell(ws.cell(row=header_row, column=1), "First name", align=name_alignment, fill=header_fill, bold=True)
+    set_cell(ws.cell(row=header_row, column=2), "Last name", align=name_alignment, fill=header_fill, bold=True)
 
     for idx, (first, last) in enumerate(roster):
         row = data_start + idx
