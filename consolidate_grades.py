@@ -11,7 +11,7 @@ Workflow (per assignment file with numeric prefix other than 00):
 - Add a total column that sums the criteria (labelled with the assignment weight).
 - Pull the over-100 grade and letter grade from the 00-*.xlsx course total file.
 - Arrange assignment blocks side-by-side with student names only once on the left,
-  rotate headers 90°, and merge the assignment label above the criteria/totals.
+  merge the assignment label above the criteria/totals.
 - Append course total (over 100 and letter) to the far right and style with gray
   headers, alternating row shading, and a course title banner.
 """
@@ -32,7 +32,7 @@ from openpyxl.utils import get_column_letter
 
 
 BANNED_HEADERS = ["username", "score", "feedback", "graded by", "time graded"]
-HEADER_TEXT_ROTATION = 90
+HEADER_TEXT_ROTATION = 0
 
 
 def find_header_row(df: pd.DataFrame) -> int:
@@ -424,8 +424,6 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
 
     # Autosize columns to content (within bounds).
     def autosize():
-        header_max_len = 0
-        title_len = len(str(ws.cell(row=title_row, column=1).value or ""))
         for col in range(1, ws.max_column + 1):
             max_len = 0
             for cell in ws.iter_cols(min_col=col, max_col=col, min_row=1, max_row=ws.max_row):
@@ -434,8 +432,6 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
                         continue
                     val = str(c.value).replace("\n", " ")
                     max_len = max(max_len, len(val))
-                    if c.row in (title_row, group_row, header_row):
-                        header_max_len = max(header_max_len, len(val))
             # Names columns get a wider default cap.
             if col <= 2:
                 min_w, max_w = 16, 40
@@ -445,10 +441,10 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
             width = min(width, max_w)
             ws.column_dimensions[get_column_letter(col)].width = width
 
-        # Adjust header and title heights based on text length to avoid clipping rotated text.
-        ws.row_dimensions[header_row].height = max(45, min(90, header_max_len * 1.3))
-        ws.row_dimensions[group_row].height = max(ws.row_dimensions[group_row].height or 0, 24)
-        ws.row_dimensions[title_row].height = max(ws.row_dimensions[title_row].height or 0, 32)
+        # Let Excel auto-fit row heights (clearing any prior overrides).
+        ws.row_dimensions[header_row].height = None
+        ws.row_dimensions[group_row].height = ws.row_dimensions[group_row].height or 24
+        ws.row_dimensions[title_row].height = ws.row_dimensions[title_row].height or 32
 
     # Add thick vertical separators between sections.
     def add_thick_vertical(col_idx: int):

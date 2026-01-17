@@ -33,7 +33,7 @@ deactivate
 - Top banner: course name + “Assignment Grade Breakdown Per Criteria”.
 - Name block once on the left, assignment blocks side-by-side, course total on the right.
 - Criterion names pulled from rubric CSVs (fallback to `Criterion N`), totals, over-100 scores, and letters included.
-- Rotated headers, gray palette, zebra striping, and thick separators between sections.
+- Gray palette, zebra striping, and thick separators between sections; headers auto-size horizontally.
 
 ## Rubric weight export (Tampermonkey)
 Use the companion userscript to capture rubric criterion weights as the CSVs the Python tool expects.
