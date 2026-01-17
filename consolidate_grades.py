@@ -309,7 +309,7 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
 
     title_row = 1
     group_row = 2
-    header_row = 3  # rotated headers
+    header_row = 3  # header row
     data_start = header_row + 1
     col_offset = 3  # start after name columns
 
