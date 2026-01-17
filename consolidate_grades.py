@@ -317,6 +317,7 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
     group_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
     data_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
     name_alignment = Alignment(horizontal="left", vertical="center")
+    dist_header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
     title_fill = PatternFill("solid", fgColor="BFBFBF")  # dark gray
     header_fill = PatternFill("solid", fgColor="E6E6E6")  # light gray
@@ -362,10 +363,12 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
         set_cell(ws.cell(row=row, column=2), last, align=name_alignment)
 
     section_ends = [2]  # end of names block
+    assignment_meta = []
 
     for assignment in assignments:
         df = assignment["df"]
         columns = assignment["write_columns"]
+        start_col = col_offset
 
         # Write column headers with rotation
         for idx, col_name in enumerate(columns):
@@ -395,6 +398,14 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
                 )
 
         section_ends.append(col_offset + len(columns) - 1)
+        # Grade distribution counts per assignment from letter grades.
+        letter_series = df["Total - Letter"].dropna().astype(str).str.upper().str.strip()
+        buckets = {"F": 0, "D": 0, "C": 0, "B": 0, "A": 0}
+        for letter in letter_series:
+            key = letter[0] if letter else ""
+            if key in buckets:
+                buckets[key] += 1
+        assignment_meta.append({"start_col": start_col, "display_name": assignment["display_name"], "buckets": buckets})
         col_offset += len(columns)
 
     # Course total block
@@ -462,6 +473,27 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
 
     for end_col in section_ends:
         add_thick_vertical(end_col)
+
+    # Grade distribution summary below the table (one row per assignment).
+    dist_start_row = data_start + len(roster) + 2
+    dist_header_row = dist_start_row - 1
+    for meta in assignment_meta:
+        start_col = meta["start_col"]
+        # Header labels F..A
+        labels = ["Assignment", "F", "D", "C", "B", "A"]
+        for offset, label in enumerate(labels):
+            set_cell(
+                ws.cell(row=dist_header_row, column=start_col + offset),
+                label,
+                align=dist_header_alignment,
+                fill=header_fill,
+                bold=True,
+            )
+        # Values row
+        set_cell(ws.cell(row=dist_start_row, column=start_col), meta["display_name"], align=name_alignment, bold=True)
+        for idx, key in enumerate(["F", "D", "C", "B", "A"], start=1):
+            set_cell(ws.cell(row=dist_start_row, column=start_col + idx), meta["buckets"][key], align=data_alignment, number=True)
+        dist_start_row += 1
 
     autosize()
 
