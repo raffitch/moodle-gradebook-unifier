@@ -424,6 +424,7 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
 
     # Autosize columns to content (within bounds).
     def autosize():
+        header_max_len = 0
         for col in range(1, ws.max_column + 1):
             max_len = 0
             for cell in ws.iter_cols(min_col=col, max_col=col, min_row=1, max_row=ws.max_row):
@@ -432,11 +433,20 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
                         continue
                     val = str(c.value).replace("\n", " ")
                     max_len = max(max_len, len(val))
-            min_w = 12 if col <= 2 else 6
-            max_w = 20 if col <= 2 else 16
+                    if c.row in (title_row, group_row, header_row):
+                        header_max_len = max(header_max_len, len(val))
+            # Names columns get a wider default cap.
+            if col <= 2:
+                min_w, max_w = 14, 40
+            else:
+                min_w, max_w = 8, 30
             width = max(min_w, max_len + 2)
             width = min(width, max_w)
             ws.column_dimensions[get_column_letter(col)].width = width
+
+        # Adjust header row height based on rotated text length to avoid clipping.
+        ws.row_dimensions[header_row].height = max(60, header_max_len * 2)
+        ws.row_dimensions[group_row].height = max(ws.row_dimensions[group_row].height or 0, 24)
 
     # Add thick vertical separators between sections.
     def add_thick_vertical(col_idx: int):
