@@ -330,7 +330,7 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
     def clean_value(value):
         return None if pd.isna(value) else value
 
-    def set_cell(cell, value, align=None, fill=None, bold=False, number=False, border_on=True):
+    def set_cell(cell, value, align=None, fill=None, bold=False, number=False, num_format=None, border_on=True):
         cell.value = clean_value(value)
         if align:
             cell.alignment = align
@@ -338,7 +338,9 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
             cell.fill = fill
         if bold:
             cell.font = Font(bold=True, size=cell.font.size if cell.font else 11)
-        if number and isinstance(value, (int, float)):
+        if num_format:
+            cell.number_format = num_format
+        elif number and isinstance(value, (int, float)):
             cell.number_format = "0.00"
         if border_on:
             cell.border = border
@@ -474,25 +476,23 @@ def write_workbook(assignments: List[dict], roster: List[Tuple[str, str]], cours
     for end_col in section_ends:
         add_thick_vertical(end_col)
 
-    # Grade distribution summary below the table (one row per assignment).
-    dist_start_row = data_start + len(roster) + 2
-    dist_header_row = dist_start_row - 1
+    # Grade distribution summary below the table (stacked rows).
+    dist_header_row = data_start + len(roster) + 1
+    dist_start_row = dist_header_row + 1
+    labels = ["Assignment", "F", "D", "C", "B", "A"]
+    for offset, label in enumerate(labels):
+        set_cell(
+            ws.cell(row=dist_header_row, column=offset + 1),
+            label,
+            align=dist_header_alignment,
+            fill=header_fill,
+            bold=True,
+        )
     for meta in assignment_meta:
-        start_col = meta["start_col"]
-        # Header labels F..A
-        labels = ["Assignment", "F", "D", "C", "B", "A"]
-        for offset, label in enumerate(labels):
-            set_cell(
-                ws.cell(row=dist_header_row, column=start_col + offset),
-                label,
-                align=dist_header_alignment,
-                fill=header_fill,
-                bold=True,
-            )
-        # Values row
-        set_cell(ws.cell(row=dist_start_row, column=start_col), meta["display_name"], align=name_alignment, bold=True)
+        row_num = dist_start_row
+        set_cell(ws.cell(row=row_num, column=1), meta["display_name"], align=name_alignment, bold=True)
         for idx, key in enumerate(["F", "D", "C", "B", "A"], start=1):
-            set_cell(ws.cell(row=dist_start_row, column=start_col + idx), meta["buckets"][key], align=data_alignment, number=True)
+            set_cell(ws.cell(row=row_num, column=idx + 1), meta["buckets"][key], align=data_alignment, num_format="0")
         dist_start_row += 1
 
     autosize()
