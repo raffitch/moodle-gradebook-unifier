@@ -33,6 +33,14 @@ deactivate
 - Criterion names pulled from rubric CSVs (fallback to `Criterion N`), totals, over-100 scores, and letters included.
 - Rotated headers, gray palette, zebra striping, and thick separators between sections.
 
+## Rubric weight export (Tampermonkey)
+Use the companion userscript to capture rubric criterion weights as the CSVs the Python tool expects.
+
+1) Install the Tampermonkey browser extension.
+2) Add the script from `tampermonkey-rubric-export.user.js` (raw URL: https://raw.githubusercontent.com/raffitch/moodle-gradebook-unifier/main/tampermonkey-rubric-export.user.js).
+3) On a Moodle assignment’s Advanced Grading page (Rubric), the script adds an “Export rubric % CSV” button above the rubric.
+4) Click the button to download a CSV of criterion labels and weights. Rename the file to match your assignment export (same name as the assignment XLSX without the numeric prefix, ending with `- Rubric Percentage.csv`) and place it alongside the XLSX exports before running the consolidation.
+
 ## Notes
 - Rows containing “Raffi” are removed.
 - Grade values are left untouched; numeric cells are shown with two decimal places.
